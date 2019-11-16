@@ -1,24 +1,29 @@
 package main
 
 import (
-    "log"
-    "net/http"
+	"log"
+	"net/http"
 
-    "github.com/gorilla/mux"
+	"github.com/gorilla/mux"
+	"github.com/gorilla/handlers"
 )
 
 func public(w http.ResponseWriter, r *http.Request) {
-    w.Write([]byte("hello public!\n"))
+	w.Write([]byte("hello public!\n"))
 }
 
 func private(w http.ResponseWriter, r *http.Request) {
-    w.Write([]byte("hello private!\n"))
+	w.Write([]byte("hello private!\n"))
 }
 
 func main() {
-    r := mux.NewRouter()
-    r.HandleFunc("/public", public)
-    r.HandleFunc("/private", private)
+	allowedOrigins := handlers.AllowedOrigins([]string{"http://localhost:8080"})
+    allowedMethods := handlers.AllowedMethods([]string{"GET", "POST", "DELETE", "PUT"})
+	allowedHeaders := handlers.AllowedHeaders([]string{"Authorization"})
 
-    log.Fatal(http.ListenAndServe(":8000", r))
+	r := mux.NewRouter()
+	r.HandleFunc("/public", public)
+	r.HandleFunc("/private", private)
+
+	log.Fatal(http.ListenAndServe(":8000", handlers.CORS(allowedOrigins, allowedMethods, allowedHeaders)(r)))
 }
